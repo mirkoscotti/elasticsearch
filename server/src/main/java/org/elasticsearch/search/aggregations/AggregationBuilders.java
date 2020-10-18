@@ -18,6 +18,9 @@
  */
 package org.elasticsearch.search.aggregations;
 
+import java.util.List;
+import java.util.Map;
+
 import org.elasticsearch.common.geo.GeoDistance;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -30,10 +33,10 @@ import org.elasticsearch.search.aggregations.bucket.filter.FilterAggregationBuil
 import org.elasticsearch.search.aggregations.bucket.filter.Filters;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.filter.FiltersAggregator.KeyedFilter;
-import org.elasticsearch.search.aggregations.bucket.geogrid.InternalGeoHashGrid;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoHashGridAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.geogrid.InternalGeoTileGrid;
 import org.elasticsearch.search.aggregations.bucket.geogrid.GeoTileGridAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.geogrid.InternalGeoHashGrid;
+import org.elasticsearch.search.aggregations.bucket.geogrid.InternalGeoTileGrid;
 import org.elasticsearch.search.aggregations.bucket.global.Global;
 import org.elasticsearch.search.aggregations.bucket.global.GlobalAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
@@ -62,12 +65,16 @@ import org.elasticsearch.search.aggregations.metrics.Avg;
 import org.elasticsearch.search.aggregations.metrics.AvgAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.CardinalityAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.ExtendedStats;
+import org.elasticsearch.search.aggregations.metrics.ExtendedStatsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.GeoBounds;
 import org.elasticsearch.search.aggregations.metrics.GeoBoundsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.GeoCentroid;
 import org.elasticsearch.search.aggregations.metrics.GeoCentroidAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.Max;
 import org.elasticsearch.search.aggregations.metrics.MaxAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.MedianAbsoluteDeviation;
+import org.elasticsearch.search.aggregations.metrics.MedianAbsoluteDeviationAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.Min;
 import org.elasticsearch.search.aggregations.metrics.MinAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.PercentileRanks;
@@ -78,8 +85,6 @@ import org.elasticsearch.search.aggregations.metrics.ScriptedMetric;
 import org.elasticsearch.search.aggregations.metrics.ScriptedMetricAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.Stats;
 import org.elasticsearch.search.aggregations.metrics.StatsAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.ExtendedStats;
-import org.elasticsearch.search.aggregations.metrics.ExtendedStatsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.Sum;
 import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.TopHits;
@@ -87,11 +92,8 @@ import org.elasticsearch.search.aggregations.metrics.TopHitsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.ValueCount;
 import org.elasticsearch.search.aggregations.metrics.ValueCountAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.WeightedAvgAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.MedianAbsoluteDeviationAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.MedianAbsoluteDeviation;
-
-import java.util.List;
-import java.util.Map;
+import org.elasticsearch.search.aggregations.metrics.strictcardinality.StrictCardinality;
+import org.elasticsearch.search.aggregations.metrics.strictcardinality.StrictCardinalityAggregationBuilder;
 
 /**
  * Utility class to create aggregations.
@@ -342,6 +344,13 @@ public class AggregationBuilders {
      */
     public static CardinalityAggregationBuilder cardinality(String name) {
         return new CardinalityAggregationBuilder(name);
+    }
+
+    /**
+     * Create a new {@link StrictCardinality} aggregation with the given name.
+     */
+    public static StrictCardinalityAggregationBuilder strictCardinality(String name) {
+        return new StrictCardinalityAggregationBuilder(name);
     }
 
     /**

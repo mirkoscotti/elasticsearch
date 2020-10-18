@@ -19,6 +19,18 @@
 
 package org.elasticsearch.search;
 
+import static java.util.Collections.unmodifiableList;
+import static java.util.Collections.unmodifiableMap;
+import static java.util.Objects.requireNonNull;
+import static org.elasticsearch.index.query.CommonTermsQueryBuilder.COMMON_TERMS_QUERY_DEPRECATION_MSG;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
+
 import org.apache.lucene.search.BooleanQuery;
 import org.elasticsearch.common.NamedRegistry;
 import org.elasticsearch.common.ParseField;
@@ -119,13 +131,13 @@ import org.elasticsearch.search.aggregations.bucket.geogrid.InternalGeoTileGrid;
 import org.elasticsearch.search.aggregations.bucket.global.GlobalAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.global.InternalGlobal;
 import org.elasticsearch.search.aggregations.bucket.histogram.AutoDateHistogramAggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.histogram.VariableWidthHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.HistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.histogram.InternalAutoDateHistogram;
-import org.elasticsearch.search.aggregations.bucket.histogram.InternalVariableWidthHistogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.InternalDateHistogram;
 import org.elasticsearch.search.aggregations.bucket.histogram.InternalHistogram;
+import org.elasticsearch.search.aggregations.bucket.histogram.InternalVariableWidthHistogram;
+import org.elasticsearch.search.aggregations.bucket.histogram.VariableWidthHistogramAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.missing.InternalMissing;
 import org.elasticsearch.search.aggregations.bucket.missing.MissingAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
@@ -199,6 +211,8 @@ import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.TopHitsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.ValueCountAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.WeightedAvgAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.strictcardinality.InternalStrictCardinality;
+import org.elasticsearch.search.aggregations.metrics.strictcardinality.StrictCardinalityAggregationBuilder;
 import org.elasticsearch.search.aggregations.pipeline.AvgBucketPipelineAggregationBuilder;
 import org.elasticsearch.search.aggregations.pipeline.AvgBucketPipelineAggregator;
 import org.elasticsearch.search.aggregations.pipeline.BucketScriptPipelineAggregationBuilder;
@@ -246,14 +260,14 @@ import org.elasticsearch.search.aggregations.pipeline.SumBucketPipelineAggregato
 import org.elasticsearch.search.aggregations.support.ValuesSourceRegistry;
 import org.elasticsearch.search.fetch.FetchPhase;
 import org.elasticsearch.search.fetch.FetchSubPhase;
-import org.elasticsearch.search.fetch.subphase.FetchDocValuesPhase;
 import org.elasticsearch.search.fetch.subphase.ExplainPhase;
-import org.elasticsearch.search.fetch.subphase.FetchSourcePhase;
-import org.elasticsearch.search.fetch.subphase.MatchedQueriesPhase;
+import org.elasticsearch.search.fetch.subphase.FetchDocValuesPhase;
 import org.elasticsearch.search.fetch.subphase.FetchScorePhase;
+import org.elasticsearch.search.fetch.subphase.FetchSourcePhase;
+import org.elasticsearch.search.fetch.subphase.FetchVersionPhase;
+import org.elasticsearch.search.fetch.subphase.MatchedQueriesPhase;
 import org.elasticsearch.search.fetch.subphase.ScriptFieldsPhase;
 import org.elasticsearch.search.fetch.subphase.SeqNoPrimaryTermPhase;
-import org.elasticsearch.search.fetch.subphase.FetchVersionPhase;
 import org.elasticsearch.search.fetch.subphase.highlight.FastVectorHighlighter;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightPhase;
 import org.elasticsearch.search.fetch.subphase.highlight.Highlighter;
@@ -279,18 +293,6 @@ import org.elasticsearch.search.suggest.phrase.SmoothingModel;
 import org.elasticsearch.search.suggest.phrase.StupidBackoff;
 import org.elasticsearch.search.suggest.term.TermSuggestion;
 import org.elasticsearch.search.suggest.term.TermSuggestionBuilder;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
-import static java.util.Collections.unmodifiableList;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.Objects.requireNonNull;
-import static org.elasticsearch.index.query.CommonTermsQueryBuilder.COMMON_TERMS_QUERY_DEPRECATION_MSG;
 
 /**
  * Sets up things that can be done at search time like queries, aggregations, and suggesters.
@@ -412,6 +414,9 @@ public class SearchModule {
         registerAggregation(new AggregationSpec(CardinalityAggregationBuilder.NAME, CardinalityAggregationBuilder::new,
                 CardinalityAggregationBuilder.PARSER).addResultReader(InternalCardinality::new)
             .setAggregatorRegistrar(CardinalityAggregationBuilder::registerAggregators), builder);
+        registerAggregation(new AggregationSpec(StrictCardinalityAggregationBuilder.NAME, StrictCardinalityAggregationBuilder::new,
+        		StrictCardinalityAggregationBuilder.PARSER).addResultReader(InternalStrictCardinality::new)
+            .setAggregatorRegistrar(StrictCardinalityAggregationBuilder::registerAggregators), builder);
         registerAggregation(new AggregationSpec(GlobalAggregationBuilder.NAME, GlobalAggregationBuilder::new,
                 GlobalAggregationBuilder::parse).addResultReader(InternalGlobal::new), builder);
         registerAggregation(new AggregationSpec(MissingAggregationBuilder.NAME, MissingAggregationBuilder::new,
